@@ -1,10 +1,10 @@
+#https://www.tensorflow.org/tutorials/generative/style_transfer
 import tensorflow as tf
 
 class StyleContentModel(tf.keras.models.Model):
 
     def clip_0_1(self,image):
         return tf.clip_by_value(image, clip_value_min=0.0, clip_value_max=1.0)
-
 
     def gram_matrix(self,input_tensor):
         result = tf.linalg.einsum('bijc,bijd->bcd', input_tensor, input_tensor)
@@ -13,8 +13,6 @@ class StyleContentModel(tf.keras.models.Model):
         return result/(num_locations)
 
     def vgg_layers(self,layer_names):
-        """ Creates a vgg model that returns a list of intermediate output values."""
-        # Load our model. Load pretrained VGG, trained on imagenet data
         vgg = tf.keras.applications.VGG19(include_top=False, weights='imagenet')
         vgg.trainable = False
         outputs = [vgg.get_layer(name).output for name in layer_names]
@@ -23,8 +21,6 @@ class StyleContentModel(tf.keras.models.Model):
 
     def __init__(self, style_layers, content_layers,content_weight):
         super(StyleContentModel, self).__init__()
-        #Hyperparameters
-        #self.style_weight=style_weight
         self.content_weight=content_weight
         self.learning_rate = 0.02
         self.beta_1 = 0.99
@@ -48,7 +44,6 @@ class StyleContentModel(tf.keras.models.Model):
         self.content_targets = self.call(content_image)['content']
 
     def call(self, inputs):
-        "Expects float input in [0,1]"
         inputs = inputs*255.0
         preprocessed_input = tf.keras.applications.vgg19.preprocess_input(inputs)
         outputs = self.vgg(preprocessed_input)

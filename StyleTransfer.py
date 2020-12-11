@@ -29,11 +29,6 @@ class StyleTransfer:
             tensor = tensor[0]
         return PIL.Image.fromarray(tensor)
 
-    def load_img(self,path_to_img):
-        
-        img = tf.io.read_file(path_to_img)
-        return self.decode_image(img)
-
     def decode_image(self,img):
         max_dim = 512
         img = tf.keras.preprocessing.image.img_to_array(img)/255
@@ -48,23 +43,18 @@ class StyleTransfer:
         img = img[tf.newaxis, :]
         return img
     
-    def __init__(self,style, content,path = True,epochs=10,steps_per_epoch = 100,content_weight = 0.2):
+    def __init__(self,style, content,epochs=10,steps_per_epoch = 100,content_weight = 0.2):
         #Default Hyper parameters
         #self.style_weight= style_weight                    
         self.content_weight= content_weight                    
         self.epochs = epochs
         self.steps_per_epoch = steps_per_epoch
         #Images
-        
-        if(path):
-            self.content_image = self.load_img(content)
-            self.style_image = self.load_img(style)
-        else:
-            self.content_image = self.decode_image(content)
-            self.style_image = self.decode_image(style)
+        self.content_image = self.decode_image(content)
+        self.style_image = self.decode_image(style)
 
-        self.stylized_image = tf.Variable(self.content_image) #tf.Variable(self.decode_image(self.randomImage(content)))
-        #Layers
+        self.stylized_image = tf.Variable(self.content_image) # Si se quiere probar con una imagen random : tf.Variable(self.decode_image(self.randomImage(content)))
+        #Layers a usar de la VGG19
         self.content_layers = ['block5_conv2'] 
         self.style_layers = ['block1_conv1',
                 'block2_conv1',
@@ -80,11 +70,14 @@ class StyleTransfer:
         que en cada capa de la red esta va extrayendo caracteristicas cada vez mas complejas."""
         modelo = StyleContentModel(self.style_layers, self.content_layers,self.content_weight)
         modelo.defineTargets(self.style_image,self.content_image)
+        #Streamlit UI
         st.markdown("*Result Image*")
         progressImage = st.empty()
         latest_iteration = st.empty()
         bar = st.progress(0.0)
         latest_iteration.text("No Epoch")
+
+        #Model Execution
         for epoch in range(1,self.epochs+1):
             progressImage.image(self.get_stylized_image())
             for _ in range(self.steps_per_epoch):

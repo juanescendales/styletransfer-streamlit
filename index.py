@@ -67,11 +67,13 @@ if __name__ == "__main__":
     if(contentFile):
         contentFilePIL = PIL.Image.open(contentFile)
         contentFilePIL = contentFilePIL.convert('RGB')
+
+    #Paso 3 : Fuuuuusion
     if(styleFilePIL is not None and contentFilePIL is not None):
         
         
         st.markdown("**Paso 3 :** Fusionar")
-        styleTransferObject = StyleTransfer(styleFilePIL,contentFilePIL,path = False,epochs = epochs_slider,steps_per_epoch = steps_per_epoch_slider, content_weight = content_weight_slider) 
+        styleTransferObject = StyleTransfer(styleFilePIL,contentFilePIL,epochs = epochs_slider,steps_per_epoch = steps_per_epoch_slider, content_weight = content_weight_slider) 
         st.markdown("*Style Image*")
         st.image(styleTransferObject.get_img_style())
         st.markdown("*Content Image*")
